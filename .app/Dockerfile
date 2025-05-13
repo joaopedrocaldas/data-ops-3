@@ -2,7 +2,7 @@ FROM python:3.11-slim
 
 WORKDIR /.app
 
-COPY  conecta_postegres.py .
+COPY  app.py .
 
 RUN pip install psycopg2-binary flask flask-restx gunicorn
 
