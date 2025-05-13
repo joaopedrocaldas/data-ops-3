@@ -1,4 +1,4 @@
-name: Deploy Flask API via SSH
+name: Deploy to VM
 
 on:
   push:
@@ -10,16 +10,21 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Deploy via SSH to VM
-      uses: appleboy/ssh-action@v1.0.3
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up SSH
+      uses: webfactory/ssh-agent@v0.5.3
       with:
-        host: ${{ secrets.VM_HOST }}
-        username: ${{ secrets.VM_USER }}
-        key: ${{ secrets.VM_SSH_KEY }}
-        script: |
-          cd data-ops-3 || git clone git@github.com:${{ github.repository }}.git data-ops-3 && cd data-ops-3
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+    - name: Connect to VM and deploy
+      run: |
+        ssh -o StrictHostKeyChecking=no azureuser@20.169.107.205 << 'EOF'
+          cd /path/to/your/app
           git pull origin main
-          docker build -t flask-api .
-          docker stop flask-api || true
-          docker rm flask-api || true
-          docker run -d -p 80:80 --name flask-api flask-api
+          docker build -t flask-app .
+          docker stop flask-app || true
+          docker rm flask-app || true
+          docker run -d -p 80:80 --name flask-app flask-app
+        EOF
