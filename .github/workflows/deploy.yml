@@ -25,7 +25,7 @@ jobs:
       with: 
         host: ${{ secrets.VM_HOST}}
         username: ${{ secrets.SERVER_USER }}
-        key: ${{ secrets.VM_SSH_KEY }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
         port: 5000
         script: |
           cd /home/${{ secrets.VM_USER }}/dataops-github-actions2
