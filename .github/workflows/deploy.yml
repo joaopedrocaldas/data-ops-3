@@ -1,30 +1,34 @@
-name: Deploy to VM
+name: Deploy Docker App em VM Azure
 
 on:
   push:
     branches:
       - main
-
+  
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+    - name: Checkout do codigo
+      uses: actions/checkout@v4
+    
 
-    - name: Set up SSH
-      uses: webfactory/ssh-agent@v0.5.3
-      with:
-        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-
-    - name: Connect to VM and deploy
+    - name: Testar conexão SSH com netcat
       run: |
-        ssh -o StrictHostKeyChecking=no azureuser@20.169.107.205 << 'EOF'
-          cd /path/to/your/app
+        echo "Testando conexão com porta 22..."
+        nc -zv -w 5 ${{ secrets.VM_HOST }} 22 || echo " Falha na conexão com a porta 22 (SSH não acessível)"
+
+    - name: Conectar com a VM e fazer o deploy
+      uses: appleboy/ssh-action@v0.1.8
+
+      with: 
+        host: ${{ secrets.VM_HOST}}
+        username: ${{ secrets.SERVER_USER }}
+        key: ${{ secrets.VM_SSH_KEY }}
+        port: 22
+        script: |
+          cd /home/${{ secrets.VM_USER }}/dataops-github-actions2
           git pull origin main
-          sudo docker build -t flask-app .
-          sudo docker stop flask-app || true
-          sudo docker rm flask-app || true
-          sudo docker run -d -p 80:80 --name flask-app flask-app
-        EOF
+          docker-compose down || true
+          docker-compose up -d --build
