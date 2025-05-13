@@ -1,7 +1,7 @@
 import psycopg2
 import time
 from flask import Flask
-from flask_restx import Api, Resource
+from flask_restx import Api, Resource, fields
 
 
 app = Flask(__name__)
@@ -10,6 +10,11 @@ api = Api(app, version='1.0', title='Aulno API',
             doc='/swagger')
 
 ns = api.namespace('alunos', description='Operações de conexão com PostgreSQL')
+
+math_model = api.model('Operacao', {
+    'a': fields.Float(required=True, description='Primeiro número'),
+    'b': fields.Float(required=True, description='Segundo número')
+})
 
 def get_connection():
     conn = psycopg2.connect(
@@ -50,3 +55,24 @@ class AlunosList(Resource):
         cur.close()
         conn.close()
         return {"alunos": [{"id": aluno[0], "nome": aluno[1]} for aluno in alunos]}
+    
+@ns_calc.route('/soma')
+class Soma(Resource):
+    @api.expect(math_model)
+    def post(self):
+        data = request.get_json()
+        a = data['a']
+        b = data['b']
+        return {'resultado': a + b}, 200
+
+@ns_calc.route('/multiplicacao')
+class Multiplicacao(Resource):
+    @api.expect(math_model)
+    def post(self):
+        data = request.get_json()
+        a = data['a']
+        b = data['b']
+        return {'resultado': a * b}, 200
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)
