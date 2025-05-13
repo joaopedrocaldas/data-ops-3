@@ -20,7 +20,6 @@ jobs:
 
     - name: Connect to VM and deploy
       run: |
-        ssh -o StrictHostKeyChecking=no azureuser@20.169.107.205 << 'EOF'
         cd /home/${{ secrets.VM_USER }}/data-ops-3
         git pull origin main
         sudo docker-compose down || true
